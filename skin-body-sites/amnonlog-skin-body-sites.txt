@@ -1,0 +1,17 @@
+# amnonlog.txt - skin-body-sites
+# in /data/skin-body-sites/
+based on the paper:
+Body Site Is a More Determinant Factor than Human Population Diversity in the Healthy Skin Microbiome - SRP071579 (PRJNA314604) - got it (data/skin-body-sites/)
+
+# have fields:
+ethnicity_s	isolate_s
+# added the fields:
+timepoint	subj
+# and saved to map.txt
+
+# get the fasta files
+ ~/scripts/GetSRA.py -i SraRunTable.txt
+ 
+ # got the timepoint per individual in a mail from "Gao, Zhan" <Zhan.Gao@nyumc.org>, "Perez-Perez, Guillermo" <Guillermo.Perez-Perez@nyumc.org>
+ # put it in skin_project_xlsx
+ 

@@ -1,0 +1,167 @@
+Logging started at 19:01:05 on 12 May 2017
+QIIME version: 1.9.1
+
+qiime_config values:
+pick_otus_reference_seqs_fp	/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/rep_set/97_otus.fasta
+sc_queue	all.q
+pynast_template_alignment_fp	/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/rep_set_aligned/85_otus.pynast.fasta
+cluster_jobs_fp	start_parallel_jobs.py
+assign_taxonomy_reference_seqs_fp	/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/rep_set/97_otus.fasta
+torque_queue	friendlyq
+jobs_to_start	1
+denoiser_min_per_core	50
+assign_taxonomy_id_to_taxonomy_fp	/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime_default_reference/gg_13_8_otus/taxonomy/97_otu_taxonomy.txt
+temp_dir	/var/folders/fw/pzn9lrmx18bc96z02lr_hvgw0000gp/T/
+blastall_fp	blastall
+seconds_to_sleep	1
+
+parameter file values:
+parallel:jobs_to_start	1
+
+Input file md5 sums:
+/Users/priya/Desktop/calour/skin.bodysite.min25.clean.withtax.biom: 4faf12fa63264e377a750b6300d5bebf
+/Users/priya/Desktop/calour/skin-map.joined.txt: ed8b09aafff9498c626d135d1519ec70
+/Users/priya/Desktop/calour/skin-body-sites/skin.bodysite.min25.clean.withtax.seqs.tre: 781bdd6ea621ea75492212c6429816e1
+
+Executing commands.
+
+# Generate BIOM table summary command 
+biom summarize-table -i /Users/priya/Desktop/calour/skin.bodysite.min25.clean.withtax.biom -o /Users/priya/Desktop/calour/skin/biom_table_summary.txt 
+
+Stdout:
+
+Stderr:
+
+# Filter low sequence count samples from table (minimum sequence count: 3000) command 
+filter_samples_from_otu_table.py -i /Users/priya/Desktop/calour/skin.bodysite.min25.clean.withtax.biom -o /Users/priya/Desktop/calour/skin/table_mc3000.biom -n 3000
+
+Stdout:
+
+Stderr:
+
+# Rarify the OTU table to 3000 sequences/sample command 
+single_rarefaction.py -i /Users/priya/Desktop/calour/skin/table_mc3000.biom -o /Users/priya/Desktop/calour/skin/table_even3000.biom -d 3000
+
+Stdout:
+
+Stderr:
+
+Executing commands.
+
+# Beta Diversity (weighted_unifrac) command 
+beta_diversity.py -i /Users/priya/Desktop/calour/skin/table_even3000.biom -o /Users/priya/Desktop/calour/skin/bdiv_even3000/ --metrics weighted_unifrac  -t /Users/priya/Desktop/calour/skin-body-sites/skin.bodysite.min25.clean.withtax.seqs.tre 
+
+Stdout:
+
+Stderr:
+
+# Rename distance matrix (weighted_unifrac) command 
+mv /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_table_even3000.txt /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_dm.txt
+
+Stdout:
+
+Stderr:
+
+# Principal coordinates (weighted_unifrac) command 
+principal_coordinates.py -i /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_dm.txt -o /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_pc.txt 
+
+Stdout:
+
+Stderr:
+/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/skbio/stats/ordination/_principal_coordinate_analysis.py:107: RuntimeWarning: The result contains negative eigenvalues. Please compare their magnitude with the magnitude of some of the largest positive eigenvalues. If the negative ones are smaller, it's probably safe to ignore them, but if they are large in magnitude, the results won't be useful. See the Notes section for more details. The smallest eigenvalue is -1.05187406902 and the largest is 25.7199431327.
+  RuntimeWarning
+
+# Make emperor plots, weighted_unifrac) command 
+make_emperor.py -i /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_pc.txt -o /Users/priya/Desktop/calour/skin/bdiv_even3000//weighted_unifrac_emperor_pcoa_plot/ -m /Users/priya/Desktop/calour/skin-map.joined.txt 
+
+Stdout:
+
+Stderr:
+
+# Beta Diversity (unweighted_unifrac) command 
+beta_diversity.py -i /Users/priya/Desktop/calour/skin/table_even3000.biom -o /Users/priya/Desktop/calour/skin/bdiv_even3000/ --metrics unweighted_unifrac  -t /Users/priya/Desktop/calour/skin-body-sites/skin.bodysite.min25.clean.withtax.seqs.tre 
+
+Stdout:
+
+Stderr:
+
+# Rename distance matrix (unweighted_unifrac) command 
+mv /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_table_even3000.txt /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_dm.txt
+
+Stdout:
+
+Stderr:
+
+# Principal coordinates (unweighted_unifrac) command 
+principal_coordinates.py -i /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_dm.txt -o /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_pc.txt 
+
+Stdout:
+
+Stderr:
+/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/skbio/stats/ordination/_principal_coordinate_analysis.py:107: RuntimeWarning: The result contains negative eigenvalues. Please compare their magnitude with the magnitude of some of the largest positive eigenvalues. If the negative ones are smaller, it's probably safe to ignore them, but if they are large in magnitude, the results won't be useful. See the Notes section for more details. The smallest eigenvalue is -0.124307751773 and the largest is 40.2408530263.
+  RuntimeWarning
+
+# Make emperor plots, unweighted_unifrac) command 
+make_emperor.py -i /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_pc.txt -o /Users/priya/Desktop/calour/skin/bdiv_even3000//unweighted_unifrac_emperor_pcoa_plot/ -m /Users/priya/Desktop/calour/skin-map.joined.txt 
+
+Stdout:
+
+Stderr:
+
+Executing commands.
+
+# Alpha rarefaction command 
+multiple_rarefactions.py -i /Users/priya/Desktop/calour/skin/table_mc3000.biom -m 10 -x 3000 -s 299 -o /Users/priya/Desktop/calour/skin/arare_max3000//rarefaction/ 
+
+Stdout:
+
+Stderr:
+
+# Alpha diversity on rarefied OTU tables command 
+alpha_diversity.py -i /Users/priya/Desktop/calour/skin/arare_max3000//rarefaction/ -o /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div/  -t /Users/priya/Desktop/calour/skin-body-sites/skin.bodysite.min25.clean.withtax.seqs.tre
+
+Stdout:
+
+Stderr:
+
+# Collate alpha command 
+collate_alpha.py -i /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div/ -o /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div_collated/ 
+
+Stdout:
+
+Stderr:
+
+# Removing intermediate files command 
+rm -r /Users/priya/Desktop/calour/skin/arare_max3000//rarefaction/ /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div/
+
+Stdout:
+
+Stderr:
+
+# Rarefaction plot: All metrics command 
+make_rarefaction_plots.py -i /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div_collated/ -m /Users/priya/Desktop/calour/skin-map.joined.txt -o /Users/priya/Desktop/calour/skin/arare_max3000//alpha_rarefaction_plots/ 
+
+
+
+*** ERROR RAISED DURING STEP: Rarefaction plot: All metrics
+Command run was:
+ make_rarefaction_plots.py -i /Users/priya/Desktop/calour/skin/arare_max3000//alpha_div_collated/ -m /Users/priya/Desktop/calour/skin-map.joined.txt -o /Users/priya/Desktop/calour/skin/arare_max3000//alpha_rarefaction_plots/ 
+Command returned exit status: 1
+Stdout:
+
+Stderr
+/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/matplotlib/collections.py:590: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  if self._edgecolors == str('face'):
+Traceback (most recent call last):
+  File "/Users/priya/anaconda2/envs/qiime/bin/make_rarefaction_plots.py", line 229, in <module>
+    main()
+  File "/Users/priya/anaconda2/envs/qiime/bin/make_rarefaction_plots.py", line 219, in main
+    generate_average_tables=generate_average_tables)
+  File "/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime/make_rarefaction_plots.py", line 642, in make_averages
+    generate_per_sample_plots)
+  File "/Users/priya/anaconda2/envs/qiime/lib/python2.7/site-packages/qiime/make_rarefaction_plots.py", line 947, in make_plots
+    ((raredata['series'][i][j]))))
+KeyError: '<not provided>'
+
+
+Logging stopped at 19:08:47 on 12 May 2017
