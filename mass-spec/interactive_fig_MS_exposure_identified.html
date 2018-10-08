@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script src="http://d3js.org/d3.v4.min.js"></script>
+  <style>
+    .axis path {
+      display: none;
+    }
+    .pixel {
+      /* image-rendering: pixelated; */
+      padding: 0px;
+      margin: 0px;
+      border: 0px;
+        image-rendering: optimizeSpeed;             /* STOP SMOOTHING, GIVE ME SPEED  */
+        image-rendering: -moz-crisp-edges;          /* Firefox                        */
+        image-rendering: -o-crisp-edges;            /* Opera                          */
+        image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
+        image-rendering: pixelated;                 /* Chrome */
+        image-rendering: optimize-contrast;         /* CSS3 Proposed                  */
+        -ms-interpolation-mode: nearest-neighbor;   /* IE8+                           */
+    }
+    .axis line {
+      stroke-opacity: 0.3;
+      shape-rendering: crispEdges;
+    }
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2px;
+    }
+  </style>
+
+  <script>
+    $(document).ready(function() {
+
+      var yticklabels = ['NA'];
+      var ids = ['NA'];
+      var samples = ['NA'];
+      var vlines = [];
+      var xtick_pos = [];
+      var xtick_labels = [];
+      var field_name = '';
+      var title_text = 'Experiment';
+
+      //**********************************************************
+      // following variables are set by the external python program
+      // DO NOT DELETE/CHANGE
+      var yticklabels = ["Bacoside X","Spectral Match to Deoxycholic acid from NIST14","Spectral Match to Tauroursodeoxycholic acid from NIST14","Taurocholic acid","Spectral Match to Deoxycholic acid from NIST14","Tauroursodeoxycholic acid","13S-Hydroxy-9Z,11E-octadecadienoic acid, methyl ester","NCGC00180720-03_C20H32O3_1-Naphthalenepentanoic acid, 1,4,4a,5,6,7,8,8a-octahydro-beta,2,5,5,8a-pentamethyl-4-oxo-, (betaS,1S,8aR)-","5.beta.-Pregnane-3.alpha.,17-diol-20-one","Spectral Match to Tauroursodeoxycholic acid from NIST14","Spectral Match to Tauroursodeoxycholic acid from NIST14","1,2-Dimyristoyl-sn-glycerol","19(R)-Hydroxyprostaglandin B2","N-.alpha.-(tert-Butoxycarbonyl)-L-histidine","Spectral Match to 1-(9Z-Octadecenoyl)-sn-glycero-3-phosphocholine from NIST14","Spectral Match to Deoxycholic acid from NIST14","Spectral Match to Leu-Ile from NIST14","9,10-Dihydroxy-12Z-octadecenoic acid","Spectral Match to Cholic acid from NIST14","Spectral Match to Cholic acid from NIST14","13S-Hydroxy-9Z,11E-octadecadienoic acid, methyl ester","Spectral Match to Leu-Leu from NIST14","Spectral Match to Taurocholic acid from NIST14","Spectral Match to Ile-Val-Lys from NIST14","NCGC00380944-01_C30H46O3_(3beta,5xi,9xi,13alpha,17alpha,18xi)-3-Hydroxy-13,28-epoxyurs-11-en-28-one","Spectral Match to Jasmine lactone from NIST14","Spectral Match to Cholic acid from NIST14","Spectral Match to Ile-Trp from NIST14","Spectral Match to Leu-Ile from NIST14","Taurocholic acid","Spectral Match to Jasmine lactone from NIST14","Tyrosocholic acid","Spectral Match to Val-Ile from NIST14","Spectral Match to Chenodeoxycholic acid from NIST14","Spectral Match to Cholic acid from NIST14","Hexadecanedioic acid","Spectral Match to Cholic acid from NIST14","5-Androstene-3.beta.,16.beta.,17.alpha.-triol"];
+      var ids = ["951","667","906","1055","777","364","952","864","977","879","120","735","666","417","663","526","373","782","674","301","859","1018","633","1041","1027","798","501","1081","1052","1001","1090","635","1004","489","636","987","745","1042"];
+      var samples = ["10422.25.F.3","10422.26.F.3","10422.28.F.3","10422.27.F.3","10422.29.F.3","10422.31.F.3","10422.30.F.3","10422.32.F.3","10422.26.F.4","10422.25.F.4","10422.27.F.4","10422.28.F.4","10422.30.F.4","10422.29.F.4","10422.31.F.4","10422.32.F.4","10422.26.F.5","10422.25.F.5","10422.27.F.5","10422.28.F.5","10422.29.F.5","10422.30.F.5","10422.31.F.5","10422.32.F.5","10422.25.F.6","10422.26.F.6","10422.27.F.6","10422.28.F.6","10422.29.F.6","10422.30.F.6","10422.31.F.6","10422.32.F.6","10422.25.F.7","10422.26.F.7","10422.27.F.7","10422.28.F.7","10422.29.F.7","10422.30.F.7","10422.31.F.7","10422.32.F.7","10422.25.F.8","10422.27.F.8","10422.26.F.8","10422.29.F.8","10422.28.F.8","10422.30.F.8","10422.31.F.8","10422.32.F.8","10422.25.F.9","10422.26.F.9","10422.28.F.9","10422.27.F.9","10422.29.F.9","10422.30.F.9","10422.31.F.9","10422.32.F.9","10422.25.F.10","10422.26.F.10","10422.27.F.10","10422.28.F.10","10422.29.F.10","10422.30.F.10","10422.32.F.10","10422.31.F.10","10422.25.F.11","10422.26.F.11","10422.27.F.11","10422.28.F.11","10422.29.F.11","10422.31.F.11","10422.30.F.11","10422.32.F.11","10422.25.F.12","10422.26.F.12","10422.27.F.12","10422.28.F.12","10422.29.F.12","10422.30.F.12","10422.32.F.12","10422.31.F.12","10422.25.F.13","10422.26.F.13","10422.27.F.13","10422.28.F.13","10422.29.F.13","10422.30.F.13","10422.31.F.13","10422.32.F.13","10422.17.F.3","10422.18.F.3","10422.19.F.3","10422.21.F.3","10422.20.F.3","10422.23.F.3","10422.22.F.3","10422.24.F.3","10422.17.F.4","10422.18.F.4","10422.19.F.4","10422.20.F.4","10422.21.F.4","10422.22.F.4","10422.23.F.4","10422.24.F.4","10422.17.F.5","10422.19.F.5","10422.18.F.5","10422.20.F.5","10422.21.F.5","10422.22.F.5","10422.23.F.5","10422.24.F.5","10422.17.F.6","10422.18.F.6","10422.19.F.6","10422.20.F.6","10422.22.F.6","10422.21.F.6","10422.23.F.6","10422.24.F.6","10422.17.F.7","10422.18.F.7","10422.19.F.7","10422.20.F.7","10422.21.F.7","10422.22.F.7","10422.23.F.7","10422.24.F.7","10422.17.F.8","10422.18.F.8","10422.19.F.8","10422.20.F.8","10422.21.F.8","10422.22.F.8","10422.23.F.8","10422.24.F.8","10422.17.F.9","10422.18.F.9","10422.19.F.9","10422.20.F.9","10422.21.F.9","10422.23.F.9","10422.22.F.9","10422.24.F.9","10422.17.F.10","10422.18.F.10","10422.19.F.10","10422.21.F.10","10422.20.F.10","10422.23.F.10","10422.22.F.10","10422.24.F.10","10422.17.F.11","10422.18.F.11","10422.19.F.11","10422.21.F.11","10422.20.F.11","10422.22.F.11","10422.23.F.11","10422.24.F.11","10422.17.F.12","10422.18.F.12","10422.19.F.12","10422.20.F.12","10422.21.F.12","10422.22.F.12","10422.23.F.12","10422.24.F.12","10422.17.F.13","10422.18.F.13","10422.19.F.13","10422.20.F.13","10422.21.F.13","10422.22.F.13","10422.24.F.13","10422.23.F.13"];
+      var vlines = ["88.0"];
+      var xtick_pos = ["44.0","132.0"];
+      var xtick_labels = ["Air","IHH"];
+      var field_name = "exposure_type";
+      var title_text = "exposure effected gnps identified metabolites";
+      //***********************************************************
+
+      var yaxiswidth = 100;
+      var xaxisheight = 20;
+
+      // set the title
+      $('#field_name').html(field_name);
+      $('#title_text').html(title_text);
+
+      var svg = d3.select('svg');
+
+      var width = $('#div-heatmap').width();
+      var height = $('#div-heatmap').height();
+
+      // available display for the heatmap (without axes)
+      var hwidth = width - yaxiswidth;
+      var hheight = height - xaxisheight;
+
+      svg.attr('width', width)
+          .attr('height', height);
+
+      svg.on('click', onclick);
+
+      var xScale = d3.scaleLinear()
+          .domain([0, width])
+          .range([0, width]);
+
+      var yScale = d3.scaleLinear()
+          .domain([0, ids.length])
+          .range([0.5, hheight + 0.5]);
+
+      var heatmapregion = svg
+          .append('svg')
+          .attr('width', width - yaxiswidth + 'px')
+          .attr('height', height - xaxisheight + 'px')
+          .attr('x', yaxiswidth)
+          .attr('y', 0);
+
+      var heatmap = heatmapregion.append('g')
+          .append('image')
+          .attr('class', 'pixel')
+          .attr('width', samples.length)
+          .attr('height', ids.length)
+          .attr('xlink:xlink:href', 'data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAALAAAAAmCAYAAABkiBEAAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAuIwAALiMBeKU/dgAAADl0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uIDIuMS4yLCBodHRwOi8vbWF0cGxvdGxpYi5vcmcvNQv5yAAAIABJREFUeJzcvHmcVcWZ//%2BuOsvd7%2B2VnWZfRFAQUJFFdtREk8wkZhsnyWSfZCZJN4siCAioQHdnmWQSs89kmUkyk22SMYqg0aDGXVEUZG2Bhqa3u9%2Bz1veP6r5ANJPZXt/fUq/XefXtU%2BdUndqeeurzPJ9HAIoL0oo5m9j99BbeLK2cdQcPPHfnm%2Bb9sbR83p08%2BPgd/6V3/v%2BUpq1pR4RgOFB70KF3WoT9X2xm2fytoEAZgr2PbmDlzI088PzW6nuzPtLGc99sqf6/dNF28mMiADz1vdXM/mAbkXxIpNfjoYfWs2z%2BVvbs2/iG%2Bue/YyflOgPpQ2hA5pjDQw%2BtP1/u4u3sffh2rl1xN7/dfdsb3p/zl21E%2BwPsnEd2XJRnvtPCouvuQfqKhx%2B8jdkfasPOhxSHGrz4lWZmfayNwBKkTvugIH66TN8lSWI9Po/%2Bap1%2BvhDy%2BE/WsGzBNvb8bsNF9S1dtJ29j9wOwMK37uDRX6276FtDU/Lwg%2Be/U8z8eJt6/t4W5r99J7kmkyACB3Y1M/2z7bz0hWYAZvxtO5VGhVERRHsU0gWhQPqK7ASJVYCaIz6x02WO35TEyguEArMIDS%2BV6Z0SRXrw7LdbuPL9rZTrJeUhiuRJPah9kyM4dYJIr8JLCkILlIRUR8hT31/NnL9s4%2Bl/bGHOB9pAQazHp2%2BSVf2%2BlZdv4IEXtjHpznYifeClwO4HNw3p47qMGZ9pZ/8Xm5nzl20EET2h%2BqfA4dv1JFl0/Q4euW8dV3xY1%2BGmBdE%2BxdP/oPMHF%2BLcW1p56nurARi/s42ja3X%2Biis2sfvZLcz423YAggjUHAkojDCoNIIfU1h5Qc3hkMAW9MyA%2Bv1wbrZCehDaCgSYRUlgK6LnJF5aIXxQpu4Pu19gliCMgFOrCKIKsySIdgtyU3wA4h0mXlIhFBgVgTIgNBUiECAUwhcoUyEdgZdREIL09HiGFthZQbxTEVpQGC1QUqEsEAFIVyACMMtQHqJInBT4CXAzCrtfIH39XGgCEhpecOmcb2H3C0ojQ0QgUAL9XhzMim4HQGhDpEfg1CrMoi7LSyukK4j0QblRIQOBUxdgFiUi0O0TE3a0qSCiCCMhZsEABX6jhygaGGXJ0TXnpQDAjM%2B0w0BjzbKu/IW/b2HuLa14ccHz97aw6PodZMeZxLtCHv%2BXNUxvbid%2BNgQFT/5wdbWsK9/XypM/XM3Ct%2BzAznrs%2Bd0GLvt0O5H%2BED8mECE8%2B60Wli7ajvDDqrSa//ad7Pv5WlZcsQlZcsA0uP%2Bl7XoiXbmF3U9uYuni7ciyz4O/31S9L7Ml7j%2B446L2rJp%2BO8oQPPDCtuq9q97TSrKjjFF0QAgeeH5rVUIuXbSdSoNN7EyFPY9tZPaH2rCKIU5a8tw3W5j1kTacWj3RACpDwI8rxOgS4mgcsyDwEwo/qZAVQeo4IMCPCey8IjcOzJLAzgEK7LxCSfCSAuFDJBdqCfyhNkID/ITAj0GkTxHaAiuvcOoE0W79nuEqKrUSs6zwY4JYrx6HwkhJpF%2BROKsnvt3nYnYXKI%2Bvw8kYpI8UKIxNkHo1ywP7t7FizibCqEWlwSbeUQRT4mZs7J4Ku5/dwsoZGxBKEUZNZNnj/pfv0v0%2BZxPCD3ng%2Ba2smLuZ3U9t1kJn5kaEF6CkpDw6xaP/vo6FN%2BwgdrqAVxur7hKXfaqdaL9e9MnTHk7GQBmCSJ9PfpSFmPfOXSq0BPGzLkfebTLupyG5JouGFwq4GRsvZRLp8wA48h6TSd9z2fO7DSx86w7sfg%2Bn1qbw8X5qvpDi4QdvY/lVW/BTNkFU8uiv1rF08XYqdTaJ4wW8uihGJWDP7zYw7527ePxf1rB872d5cOkXWHbNVoqb8pztTVOXKWL9Qz2RXo/f7r7tou1t2fyt%2BEmL395/a3XCveWRT/PrRV9m4e7VPLqitXp/%2Bd7Pou5o0N87sEiUgL2P6m3rwg4FWPiWHTz6a71lLXzrDqzmM8jba3EzNtJTSC%2Bsbm8Ai/c08/AyLXGXLdh2UdmDadk1W5Guj/ACyqNSdFwnaXxKkj5WpjA6SqLTxSh5FEfHkb4WCEoK4p1lwojB3odv55o/24XhhiQOdPHKlnrGfl8SmgJlCNyUJHWsjLIlRsmnZ3oSq6SwiiGxMyXObXKpbU8SWhK7t4IyZXUnCd/bg/hRA%2BmjZUSgcGts4h25i4RBcE8/fiixNtUQRgyscyXcoQkiZwrc/9J2VszZRHl4gkivw559G7nslxtoaI/R3Vxm6FaTMGKipGDvI7ezdOE2yhtyKCATqeDf3siefRtZsuQuHnpoPUuW3IXwQ%2BCN/XjtirtxV/fx%2BKqd1eeXzd%2BKmP65dpU8HfLEj1YzZWM7SkLydYXpKJKnHMqNNgC5JgOhoOY1n74pWtWof9mna7ZBsgMyR12snEPHdWlQIEJIdCqe%2BU4Ll326nSHPFHjw8Tu47FPtRHIhxRGS2oM%2B%2B36%2BlumfbUf6kDgbkB1rYOcV5SGCWJfi%2Ba9dvAMsv2oLQdxC%2BGG1kdeuuBu3xsSPCvyooDxEMPq%2BLN2z0zz3jRbm/kUr5UbJS59v5vK/bsOogFXSEumZ7%2Bjyp3%2BunZc%2Br1UMPw6VOkH8rNI7wOLt9I%2BP8uy3W7jsb9qpf6lC35QI0tVq0fJ5dyIrPg88dyezPtJGEBE0vlCiPCTCuZkGzhAfq1/vbmZZYOUgN90jdtwiiCnc%2BoDECZPSqKC6xSePGVQa9HbqxxWGKwhNReoY5McPbNNKS%2BvaQyHnrhBIF6Svt2npgp9UpI/oZ3OTFMnjEjcDkV5Qhla1lIBIP5SHKpQBNa9Cbpzg0JZmrl11D%2BcutxEBuBkIIwqjJEh1KHouV0z4lwqd8%2BLEzincjCDSpygN02pmYZSg8UWfwnADowLlIYL08ZCuOYJIr6DxeQ8r71FoilIcJvFSWuV0axXxU2JgV4JoryKSCzk7V2Ll9ZhkJ8GoPR5e0kAAatradoY863B2boRhT1TonBdlyLMuIlAcf5uJdIRuqVSEUYVZXyZ8PUGQCjCKEukKQkuROibJjw8JEnoVxU6ZVBpC7OFFgmNJoj2Cwnhf62KRENFnYTgCK6d1ntKIEOodwpIJStDwe4PuuQFEQ0TZQNkhwpXIWodYzKXQlWD8j0OO3WRx4m9XM/bzrRgVwZHb9KQcv7MNOyuoNIbET0sO7Gzm0tXtvNyqdeemr%2B%2Bg42PrLlogl7a083JbM9PWtlNsCjjx6TUX5U/Y0caRdS1c9d5WisMkNYd9fvdva3mztGz%2BVpQUHP5Li8x%2Bi1hPSPHmLOp3tZRGhNS%2BLHDqBcXpFchZWFlJMK6MCgRhwSJ6xqTS5JKsK1HojSOsEPIWsiIIMj7CDhFSEboGZtTHjniU%2BmNE0w6VnhjR%2BjJhKAgCieqKEiYCjLh%2BLmp79PUkSWQqxGwPP5Dk8jHiCQfb9Ck7Nr5n4PdEQYAsSYKMz9h/VZxcZhGOqJB8JkZumoeVdPGKFh0fvpV5968leVuMQ5%2BLMPb7kpNLLLx6H1kyMIuCYFyZoGyCVAzdY1EcJjmwq5mme3cy4Uc%2BlXqLx3%2Bi%2B3zy5nZGPVxGeCFBzMQo%2B%2BzZt5GlC7ex99ENrJij1UP1P7mmrW1XgLp2xd3Ve0sXblPLrtn6Xyrnqve0qnnv3KUW3LhTAWrGZ9ovyl82f%2Bsbnh/8vei6exSgpmzQ78x75y4FqNkfaqvm/WeuJUvvUtf82a4/mj/9c%2B3q6pt3qWv%2B/I3PDNZ57Spd3xUfbrsof/A7Ft6wQwFq%2BVVb1Py37/yT37R83p3V9s/8RJtaccUmBahr/nyXuvJ9ug8Gy5nxmfbqOCxZele1jBVzN6sFN%2B5UC27Sz838uP62FVdu%2BQ/rnveuXWrZNVvV1e/W9cz6iH5v8N6cD7RVx%2BWKv7q4vRe2bdZH29TU9Xpsliy5Sy28YUf12wf77c2uhTfsUMsWbHvD/atvvuidP915/9G1atpt/%2B3JX%2B3gOZv%2Bx2X8Z65Vk9f%2Bt95befmG/yvf95%2B9Lv9k2x/Nm/7Z9je9v3LGBnXZ3%2Bi8yz715s8MXrM/%2BMbyV8zdXP193YTVau5ftF6UP7jwByf01NsvrmPlzI3V35O2vrH8WR9rqy6%2BWR9rUysv31BdrH9ivvw/PyD/netPSfgr39%2BqVs664/813/O/eQ3uPoPS/MJr6cLzEmvpou1v%2Bv6gRB28/pig%2BlOC5UJJ%2BIeTbfaHLp6kK2dsUEuW6F1h8bK731DWwrecb8vcW1rfkL9swbbq7jbro%2BfLFpPubFfOMA8jZ2os0FSENT64EuELrH7J4dtbmPnxNp6/t4WxX2jF7pcYDhhlDdO88PctzPhMO1ZBQzfPfUP/b5YUz32jhenN7Ro/9hReQvDcN1qY/cE2nvnu%2BQPaIDR22af1qd5wFW5K8HJbM9euuBuz6IMUSMenNDJO/HQZAJkr49cl2POYBvFXXLmF0sgYkR4P6WgYbcXczRqGEwIRBFXIbNWUdWCZKCFQEQNZcrn/wN3Me%2BcuzEqIlzBInKogvAAvbRM5VyI/KY2TktS9UsSPW5ydq40L0gMlQRn6IGL368OUm9GHI2UpQjskdtqkPNpDOBKjLImfFsgAXvy7ZqZsaCeMaOzTzSiSHYL9X2rmig%2B34SV1eVZR9%2BkgjAZQaRAYjv4d6VMEEY3rekmN2wpfQ55CgVlR%2BBFBpV5UYTSjHFIaalH7zDnK4%2BsIooL4yRKFsQmSJ0qElsRL21h5jTpJXxE5V8KtjSIDhVNjETtTQQQhsuIh/JAgGcFP2Vj9FY0sCIFbH8PqraAsiXR8grhNoSmGDBSBLYh1a0ivNMQkdcJh7yO3M3V9O2EEIj3g1ELsnCKIaHzbKijEJT/bpG6Z9CT/cmIWw1M5TuXSXD/6Fe57/RKK5QgzR57ipbPDsYyASfXneOHUSEbUZTFlSGc2zaiafg53DiGVLON4JkoJbMvHNgMc38AQioZkkTO5FEoJXMdkWF2ObDlKoRAFwI74CKEo98UQFYnZUGFkQz%2BnejIEnXFiZ6UGvIWeKG59QGpYnkpZHzSSL0TJT/GIH7coT60gDcWx993OmK/sIv66QWlkgIoHdHz41urBbepPN1EuRDDtAL83yom/XkPTN3Zg9ZrI8QXcsoU8Z3OsZTVjvncXVsTn8M3aonjpLzby8tu20vSdexg2vI%2B%2BfBynECGacvA8A8sKsCwfpQTlUoR0qoQhFTHL42x/imS8QszymTfkGP/60iyGNmaRQtFXiDO6th8hFEfONDJlxFkOnBhOTW0RP5SMSOcYneinz41R8CL0lBIEoaAxUeRMPkUq6jClpovOcpruUgLbCEhHKpzJpwhCSV2ihBsYeIHBqFQ/UcPnpXPDCAJJKRfl0nGnefmV0TSM7qfnWC3KVFwy9SS95TipiENPMQ5A2bHJJMr09CexIx4RyycTq3Cis55pTZ10FZNc3nCax0%2BNpVK2qasp4PkGuXyMxro8M%2Bo7efCFaRgJn1jcwXVN3L4otSOyGrIzAvqzCVQoiCUcgkAyJFMA4FRXDel0GT%2BUOI6JmLamXSkDrCJU6rWFyiyCn9Aw2ZkrDSJ9AiX15El3BHRfpqERO6twarXVzShr6VAaple9n1BEuzWkkp2orUBmUa/6eFdIYbiBn4Tk6yGFURI/AWZJW3KU0JLETwj2f7G5KqXnvXMXXkLy9D%2B0cNV7WjUUFBc4NYIDuzRyIAYsS2ZJURoqMFz9f6Rf4cdACYGbATunYaT0sZDQ0s%2BElgb47azCcMFNCV76QjMzP9FG%2BriHlzKoZKSWYnGBUys4sKOZq97bSqlRUnvIpesKm/TxEC8u8NKC0NBWJulpOMsqaAtmeYjALGpJiQIvDZnDIaWhEuFD4mxIdpw2NrgZgZWH0ggtnQGUoQhNiHbrPi2MFkR6dbsrjYLQ1Na9ugMKJy3wYxqaUlLXJQIIIqo6toajpXTtoQrFYRGifT65MRbFkbq%2BSI%2B2LlpFhVOjd40hzziUGy3K9RI3rcfMqdOIUmBD4rS26JWHCIb93kX4iu4ZEZAaIoufUSRP%2BzgZg3KjxEvqMuy8IjQFxREacqw0gJ0FJFg5RWhDEBUYZYW4%2BuZdKpINkG5IdlwEPy6QnpZ2SkDD/jKlYRG8uCSIgF1QlOskQ57Oc252kiAqBsyMetD9uCCIDOCQCRj5cIH8mDjRHg%2B732H3U5tZtmAb0vEpjEngZCQi1BYmPyLw4gK7oAdHGYL00TIIDYRf6FexZMldlIba2IUAN2lgFUP8uEQMbEduWmPChqOof6lMcWQUoSCwIHHGozDSxqwo8qO0WbLxxQrZcRG93QtId/h0T7dofN65yEdgxZVb8NI2ytBbev8kGzur9IB1BVRqDSK5AD8q8eKC7isDkAp8gZUz8GoCYqdM/IRCAWZF4MdU1VchiIcIXxCmAmTeQISAAEKtJrh1AdKVoCCMhhgFg9BWA/4WAqMiCA0FA%2BqMV%2Bvr9w2FKBlIVyAdba5HKFB6kfsxLWAQGsNXUi84P62xaRHoiS4CXS8ShCsQoTY3o/REN4sCPx3qPAVhVA3kozFuW0GoJyMKrD4DKy8IbV2vl9JtEYEWKNLV/S4CgfQGzMuebhuAmPWxNvXc11uYsrGd8hiPmhcs7Jyibxr4w1yir0Ww8%2BAloDIkJP2aBKl1tktb2vETUB7uY5QlSkDsrERJqDkc0DVbEuvSDS8PC2l4bqBzDMiNlTgNIXa/xGkIQIBRlNj9Ai%2BtOLKuhYnb2ggjujFa7OhGHVvdwpgv7yLSbeDWhIgQrLweVMPRO0N5iO7QyigPfIGI%2B6hQUPe4rXX5z2uLnVkSeDUDkyYWIBzJib/ROOS0Ne0UR4dEuyVWHgpzyiSfjpE%2BESB9Rec1Bl5GD3D0rEF5rId91sQqCIIoOA0BZl7ip0LsHoNoD1QW5Mn8Kkn3LIWyFYkTxsAAQaVeYWcFVkFLw%2BJIQXmkT%2BZlk/IQhZcJEXUuY/7RwEsanLlaEu8U%2BFE94YKoIn5WkDgTcHaOxCwLnAkVVCCQ/Raq3qX%2BoQj5sQJ3XAXRa%2BvJCGCFCENB3sTMS4LRFcTZCEFK94mVl7i1AXafgTfagT4bw9HGlTDjQyhAQbS2QhgKwmMJaCrjFyystINXtrBP2oQWBIkQZSmwQ3AlRkGCEkR7BKWRAXavgVsbVCeuGFrBOhTHrQkJoyGRLkOfLewQY%2BhVqzaPuHwVL32hhSmp63j2my1MqV/Ms99Yx9yz16JMCzcjqD/g8%2BKX1nAZ8zBdSeb6G7CKivoDHoFpEURh1MMBVkmvlLPzQ45/dg21160aWFWCwmwHkbWRAShTYBUE5ZEBhBA/ZTD25zlyE6PUHFbUL74OhOC1O1qYllxO5nCAVZQMe7xM7L03kjglEEpLHG2OEVrQOJCfEBLt1RM684qkUi8w%2B00mfyPHyfdIMitXkTlo4CW1Q4iVk3j1AWN%2BAaUhBnXLV5G8eTlBBMyCwB3n4JsS%2B7RNeUaZctyi72ofI6v9RexxBbySDb7AT4UDUgmCZEjyhEHi1IDZt0aRfM7GSwriZyHxuiC0BQ37XXqmS8b/okjydIAyDPLjJMnXFSMfcuiZYZE6of0qRM4klCa90wQNzyvctBg4JIKV14s2N14Q2oogppj4PQ8nHgNgwg8dzl0RoenBEpmXJL5t4cch8bpB4rjE6jYZvbuCXTCIvG4R6xIYZYPMYa3uVBog%2BbpEZs0BoaElcPSsgVEySB418MoRzJM2YQTMLpv0QUk5YlH7vEkQEyhL93nDM4LiKBjymIGXEviZEC85oCIJdB9GFCoSkng5SnlqBWUoLceEQKV8ZNFATNnYrkbtKdI5PzGAQsAr9zQzcXsbqeOQPOXTM8PCqR30RjuvX8a6FdmJ2oNJDOhEHddbVWmoJIx8xKF/gk2lQfDqdm3KDaKC4gitI9cd9Om%2B1MRLKVInwKnREtgsaUkUP6PNzqB1MLOk9dm%2BqTD8iQDpKM7OtWh6oMBrt8Swu43qtuM0hNQ/L/ASgjACL7U3M/PjbYSmlpDFUSHHP7ealbPuoDgmyb6fr2XylnbsrK5LCah9LaB/ooH04OXWZqat0VbL7Hibnqs9Rv%2BbJNdkUhqhGPGIz6klJlZWt0H6EO0S5CfpHSZ2yiDSp735emeGxE8alEbrBazFjd5mASK9kkpjgPQE0hV49T72OVOrAANmYrc%2BwOo3iPQICpM9CCHaaeHUBwMqh3aI8hMhVr9EmboOoyQI4tqbbRCosgpioH8Fdr9GgfqnDqg2tsLKSaycXoTSFThDfcx%2BA7OiPcSiXQZBVJHsAKdOl5U4pei/RBHplpSHhVqVCgWRHqkdnEII4rq80FREeiVuTVhVa9z6ACNvDHybVou8oS6y39IqSSAQTd%2B5R0krQIUC5UktzTyJiPuQt5h2aQevnBxGJOpR7o4jogHSDgiyNkZGzxR1JkoYD0kfNMmP06cwZWv3OQKBOaRMeDpGaKmLBsrOSvyYqt5PnJKUGxVWUS%2BISkNImNaQXuqwSWFcgKxIglqP2qct%2Bq5yIRBEO2wqw3w6PrmWsV9sJUz7GD0WQTLAKBh6uwqrKh/KUlj9klQH9MwOQCgSjSVKuSjKkTDwPfWPWfRPgaDOA08iK5IwEiISPqpgUveCQe%2BsAJnwtPnbDqn9vY30dbkiFKhogN1p4Q73QKGRkK/tJH3QJDdVTwI/EyAdSeZVQaVBe6tpSQNH17UweVM7ZkkvKhHqw4%2BX0gfcKRvaMcuQPhHgpiReUlCpg0Nbmpm6vp3yiADSHsbZCH7Gx%2BoxSXZAcZRW5WoO6gOX9LQLafJ0QLlhQGBEBS%2B160P0lDvaCWxFEFfET0lebtP3x36%2BFcPRUrPmFTh3rUfygI2f1JCs1%2BRgmCHxp%2BLkx%2BuFhVBYWYk3xuHELesZ/0/b8LM2MuVhHo/iDvWJdJoIX%2BClFEiFlZcEU4qkH4yTnazH8si6lkHN8mLQ%2Bj8yv/6BGa96zfpo2580Tb4ZsL508fl7Mz/xxy1M/xvXoCn1j12Ll78RYF819db/MP%2B6sZ/7D8v8v23Fu9CE/D955v8rlxjX3qqONa%2Bm6Ws76fjEWqataefALn1Ai/Rrb6wxX96lHXqASI8keVIhA0V2nKT2UEDnIjBKkiARknnVwCgr6l4tc%2BK6GF5dSOPvJd1X6K0i8boYgFw0MF0e7SPLGokIYiFDH5P0TBda8mxux49pQ4Dh6hOuW6NIHhdYRYUfh9wEhTJBeANoSAB2n8Cp0/f9VICZ1QelIB6SOmLog0RMw0heWp%2Bo7V6JWxvqg2T2PBRUHuUjAoFRkPjpgOgZE2Vop%2B7SqGAAIaCqnxllLb1CSyEdSe0r2qd53jt3UamTPPf1i73rZn2kjeJIwdBnPPKjTA1LhjD80SJ7HtvI3FtaqdRJjIri%2BXtbuPJ9raSOl9nz2Eamf7YdpJa%2BkT6Ph/auZ/Hyuyk3WigB5QaJVdSn9qf/Udc75wNtBDYkT/sEEUlhpIFZ0rAgapAMoH2LnVqIdoMIFbUHXR7ecxtz/6KV3ksF9fsVXVdC/JTELEPmqMe5mRav3tXM5M3tpE4oyo2CSr0i2qvJCqXhgthZRea4x%2BtLLQQQ2Fp1iJ9VPPd1TazIjzQpjFGEttK7dFxxdE0LC27cyalrDRpeUOTGSNy6EDOMKJYt2MaRpPb5LY0Mmf/2nZxqCslP8%2BFbIOsdgpwNUuGOqNA1ycQ%2BbeEO9UifMFBWSDDcIZkuk1VphCfITooRxBSxYQXOzU1C2iOarpBtjGFFfYIjcdSEEpZQeBELAoEwFedmS8KUx9T17ZSG%2BdSN6sfxLIJA4vkS2/YpNhn4PTGMWodE3CGfjRFLOZQ6k4RpF3e4QSTp4PTGiNSVcWP625PpMrl4AmEqhBGi%2BmxSTTmCUFLO2Fh2gJu3keNc3GwETEWqrkipFIE6qElUyGdixBMV8ueSoCDRUKJctJGGwjBCPMdEGgrlGIiKxC4oLvtUO2FPWJ2809a2kzwV8uQPVuPUCRKdip5pFmYZ7fTnw8mlCaYuaae7VmGWuAD/heLoGLM%2B2kbfWK085yYrrL4I7IX%2BCTa5Cdpt0yxCcbQ%2BbF198y6e%2BPEa%2BidBpE9wapI5oEuHIMDKCl67o5mmb%2B4g9rhJbmGZoGDiZgytCiob9kBhtMRr8Hjyh%2BtoWn4PFc9CuhDaFk59yLL5W3ltmM%2BhzWtp%2BuYOCATFhEC6BpVhAQfv1AhP03vuAVdCCOURIU6dZP47dnJqkSR5AoKhLrLbojLKBaEXejkAZSlKQyXlJk9DeZf/dZuK9imKw/RqrTtQJjshphX6ssKLC/y4YPi%2BPJ3zU1TqFfFOQbQvxKkRRLKK/GiJW6uInRXEukLclCDWqxCholKjzc5eAiJZheEOXOUAoeDMlRqmc9Pg1GnISvh6ENMdAflRBonOgMJIgyHPlOm6IoYyoe6AR7S7wqlrUwTRAQOICdFzCrdG%2B6b6cYGXhGSH9m/um6x3j8DW5de9UqZ7RgwEuBkN/te9onVJPwqhrakv0XMKJDgDPq9Orf6bOBuQG6N9o5WhD5jK0FfmqE%2B5ziDaH2JnfZxak3hnhZ7pcb2jDPgkR7IBj9y3jqtv3oVVCumfoJGB5OshqZMOex%2B%2Bnbm3tKKkoNwoGLmnn7NXZzDc83httC9EGRDt9jg7J8qBXc1c/e5WpK9IHs7ywAvbuPyTbSgpaHyuSMd1CYY85xNYgid%2BvIali7ejhKDcaGEVQ3qmafzbTxrs%2B9laZn2kjdrDFU4tiFF7KCDe5XL6mhixbkW8K2Dfz9cy8xNtPP%2B1Fmb8bTvDHs9x4oY0h7Zo7p%2BXsnjkN7ey6Lp78FIGxWEGiTMByRMldj%2B5iWULttF1RRzDUUT7FU5KEOvTzJHAFgQRgfQ1vm9WFL3TBKP3VHBqLKSdU7gJQaw7JNIfUhwZJfNaiUh/SOp1h1hPSPI8VKj0AAAcAklEQVR0SHZigmBRlnG/yPPiV5oxPEW0T5E6UaE40WP4voDhj2TJN0nsvOKJH61G%2Booh%2B7qJn/NJd/jU7O/HLIUkXu3mt7tvQxkayYj2hKSPhVh5SWjqA8WQZ8qgoNKgSB0tkJ8Y0DUnRu4Sn9pDPieXmhx5V5LR9/XgxxV1rwYEUUXqZEBowpAn%2BrXvQB6SnR7Rbo%2Bxv%2Bij/oUc6RM%2BjU/2cfRT8MJXW6h5zaX2UEDTr7P0TjVIn3Cofc0lNzlgxG%2BLpF/3SHQG1L7m03O1z6gH%2B4nkQjreEZI65VN/wKP2NZ/MUY/A1lj1vp%2Bvpf75HMmjOfon2qSO5DEKDk6t4IW/byHWG5A%2BlCfWkWXl5Rt44sdrePRX66h/2WHkwwVqDhbwYyarLl3PU99bTSQXMHxfgdykFC98tYXGx7upOVii9tUSj/10DSKEhx5az4Fd%2BnDlpATJQ1lE2WXVtNsY%2Bng/9Qc0DWrUwxVt6RpmcOkvNnLsrVGOvd3m3GxJucHkwK5mIl1Fui81mby5nUKTQAmh1ZVDOeyOXpSEWI8mlU7Z2M6w3Z3M/lAb2VkulSExnPqQlTM2cPymOLGOLACP/OZWzlwlGb7nHF1zJCjFmC%2B1Ikse%2B7/UzNBHu0kfymkyq4LQEmRezdI13yfW5fHMd1pInigz9mc5CBRKCkTTV3cqjbmFJA5bOHUK0VQiPBUjSAXIskEYDbH6DCK9gtKIEOkKlKGQvoZ0UAI/EaKkhmMGnVqCiEJZCqMoz1te8oLyKJ9op7ZGEWoYTgbaEmWWtbQOI4r4aa0nKikQSq/AaJ8iP1pbpey8wioq4mc83BqTaI%2BHlzDxkpJSo6TmqEffJIvUyQDpKUoNBnZRYTgKoRRGOaT3Eptor6Lm1QLlETGUEPRMMzi4rZn579iJdLQTTH6kifSh4elejt5cz8hHHNy0SW6sMUAw1Lpm/FxAud4gmg2IdjkcuynOpO/1cviWOoKoItYpcWcWiT6VoDQyRDpiwPChYUo/of96Sa1Tx88IiqNCzIK2GNo5bfAwSwK3Vumdx4DUMfASWn%2BuNOpvGUQtQhNiXZqA6SVDIj3aiGQWJEOf8hGBovcSi5fbmrnsU%2B2kTvuUGg2souLJH5znMF71nlat8wO//6fVXPXeVn7/Tzp/wU07Eb7i0X8/TxAYJLrO/YtWkqddvKTJ736pnf8XXb%2BD/GgTs6SI9gZU6gxMR%2BFHBYGlzyCZIyVKI6L6bDNA6VKmIDQFoSUwKgqxZMldKogaPHLfOhbcuJPY2TKEIaFtsuexjSy4cSeJY1nKo9N0/lWFIT%2BMEe3SZEcRhOTGxemZIRj/rzlyk1KcWahAwdQvniPMxMlNSJI47VBp0Lw46fqIYpmgPoXwQ7JTM0T6fdyMSaTX49g7DWRFMvGfS8iSy8GPZJj0wzKv3RLDKEr8Wh%2BjX3v0T/pOP/mpGU4vgsnfK3HwwzGinSaHNjezePndHH%2BLxdAnIX7WxT6dw69LaN7XE4e5v/cbjPm7XUz5Vo7K8CSP3LeOee/aReyci9lTJkzaHP60wfh7oTAqgp0PifS5HL8xxphfVzCzZV79bJKpX9LszeNvr6H%2BpYDOt7mEFZOx/wqx13P4NTEOf1wy7h8ERsnnyLtiTP52P4c%2BUsP4nzlYZ/I4IzMIpTDzLv1Tk5hlRfx0hTBqYOYcZMEBQ0IQoiwTUXEIM3HCiFml0i9bsA2zK0eYjuHWRol2FqrctiVL70J4moK1dNF23IxF4mg/ZxbV03eFj3Ak0hEkTkn8GLy6XUvxiXe1DTDEFcda9ERdumg75SE2nQsEY36tOYuDRFqAcW2tTPhxkSM3JzjWslrz1vyQ7llJhjzex8GPZzBzEq/Or7JhVs7YQN/MGp763uoqw3z5vDs59vYEwx4PsLM%2BdleB7PQ6QgNqX%2BwDpQjSUcT8d%2BxUkW4XDIEfM6nUGTz5g9UsXbgNwwlwM/aAgUMvPcMJ9Ur6t7WsmLsZlMKtjeInDZTQukr89QJufQz7XJHy6BRGJdT6VSFEhAqnxiDW7WP3lAmj%2BsRsOAGEIcoycOojEIJVGnSv09gqAuysT%2B8lERqfLVIaEcUsh4SWINrlEERNRKgojrBJvu4QRCShLQki2rwNIANFJWNU2bh%2BTBLtdsmPiRDrDjCcAC9p4qYk8TMeMggRXoiSAqfe1kaQiJYCyVMuIlT4MQMRKKyCjx8z8FImyWN5/EwE4YWEtoGZddj97Pl4G4O0mMF07ap7%2BO39t1Ynw/J5dxJaGj1x6iz2/Xwty6/aQmgb1fdWXr6BIBXFT5i6bV44gCSY2DkPP2byyH3rqjEjVlyp3/eSJmYlQElRrb9Sb5E8XsRpiGEWfbykiVXyMQoufipCpcEiNATpo0U9eWIWyhT4cYPomRKFsUlkoLD7fbyUiQgUxaEmdS8XqAyN8btfrmXhDTuI9FQQCvqmJql9JU95uPZwi50sUh6ZwCr6OLUW0R4X%2B/BZeq9twnAViY4Sbl2U2OFu7n9tFyvmbsZP2RjJt1%2B/GcOgc4GFU2NgluGSmms5tShO9xU2Shr0XG5QGGWQH2PgpSz6LhFMjy7j5FL9TO9ssHpNBHDmakmhKcYz311LcOtNgEnPZdqJ5KkfrCH6vhvwkgInY5AbH8WPm4RRkzPzoxTGROmeZVEcIQltg87FksJwCxEIchMkXlziJTStujDaxqmVRHsV564wefofb8X8yA2IwCRztIwIFSeXxSiOMGh8Ko%2Bd8/nt7vWMnbicJ368himxq9m77w6GX7EKP25QaDIIDUlhtEV5iKQ0QpAfY5IfbZEbb5ObYJE%2B7nP2Kj25pQ/ZCSbZSQaVWoPceAPDMTgz3yQ3AbxUjP6JFpljLueuiFMeGuHMMw9w5ftaObX/AVJveyvDZq/k7NMPADDiilWcPLAb%2Bdc30rv3AUbMuh6n1qRSZ1KpkzRecx2xPoWXsRjXtJSJI5bQcUMaoQwQgtJQk%2BwkC6ssODfLJNUREMQMhs1ZRSQbcKxjL6m33YiTseibYuJmLPouMUEZFEZaGB5YxZDuy6L8/kfr6HjtQWpWvIXk8SLlkXGSR/I88uAGGha/lUd/s55jJ/ZSu%2BIGfv9Paxg7cSWP3ncrr7%2B6m%2BPH99BxcDfTwpk8uncz6bfeSOZwicwNN1JuNLAL0D85hjKgPCRCYZSBUyPxaiIkTzns/e3tjJ62Eidj0n95DW6NRHqCSqONVQgwfEHsfW/Dqkj6JkYQTV/bqTo%2BsZam795NxwdvY%2Br6dl69q5nxO9ownAFo5bt3Q9nQgTfyBkZZMPQpn1PXGox6yOfEO7UuK%2BwQqyOCCATJk4q%2BSxSqQTuQdF/jQyCweg3MsmYc910aQo2HciX4EpnwsA/HcBoDGp6W9MxUhNEQ4WnLntln4tcERDvNAehmwFnHUOAP%2BER4AqMkCSNKW/wyLiqrmdUqHhA5qSV%2BEFcoAWGthxBA1oJaF1UyMfI6kk0QVdDooAKBKpnIpAc9Eb1jVISOn2FqqSekri8smwNRX4CKpOOTa7niw23U7y8QRM0qvTyIGphFH7fOvij6zOJld/PwnttYeMMOKvUGxWGS4fuKnJuV4MWvNLNq%2Bu1V1WDKxnbinRp1aXjBwe6rsPvpLdVoQFZBf5OXFFUi62V/044YpO%2BbGvs1XFWF%2BCbe1cbh9dr6F8SUtrIpjeQ8%2B%2B0WJm9px60JqXlF0DsrIHraRARQ92pAz6UGh7ZoN4TDt2tnLK8uxO6RxDs1Zj/6wQCnxqBz8cC4mgozZ1DzqmZ4T9moLYuFcYH2YjMUhIIxv1LkRpv0zdTefJWhAcpUsOj6HRcRMgdJditn3aFWztigli7cphbctFOtmLtZzf5gm1qy5C4195bWN7W6LXzLjqq16s2Ij6CJl0sXbruIpLnq0vVq6eLtFxEBm%2B7dWbWCrbp0ffX%2Bm9FcBuksF1ra/hhNZuWMDVWq0R97ZtW026rfMsgFWzX11ipdZ8FNO9Wq6berhTfsUCtn3aGuem%2BruvJ9rWrV1FsvstatmLNJLZ93p1q8/G61Yu7m6vsX8sMWvmWHWnT9jipNaMGNO9XcW1rV/LfvrNKU3syCOUjM/M9eg9zFC7ltcLEl9H/7urCdfzhug2Pwh7SvC8d68fK7q/Nx1ZR1atXktWrFlVuq/bJy1h1KrJy5UZVGp4h2lfFTNpHOPPe/fFdVF5v5iTaSpwP8mOT0dT6TvuXjJ0ykF%2BLHDAwn5OEHb6sGCRnz5V3IimTS9/pQEQvZX6Rr8VCe%2B3oLK2dsIIxb%2BCm7Gt9q8L3B0E7T1rUjXXjp8%2BclxrDf9XPk3RnG/rJEYUyMRKdD57wYI/fm8VM2R98tueQLWV79ZC2NT0rSHRXM/goHP5Zm/E%2B8i2KBAayatIb7X9vFouvuIXq2xAPP3VmNw3XNn%2B8icazA7me3MOYf7%2BLEX%2Bp3B%2BPCLV52N0IpHtq7vhp%2Ba8WcTTiNcR65bx1jvrwLFQto2Gfx7Le1VBv7g%2B0cf78OiNL01Z1M/XqhGmNu0XX38MhvdJCWFXM2ISt%2BVcIOpsHT/OC3IyUIwf2v3lN9ZtBXeuVMfah74PmtrLx8A2HUojwixr6f6dP/qkvXEyQj1YhFE%2B5uI30Uov1hlc4%2BmJYt2MaZq%2BKUhygmfr%2BPB/ZvY%2BWMDWBKzs3J8Nw3dPuu%2BfNdpF7q5v6DO6o7%2BWCQmAU37sQq%2Bjy0VwcuCSKSR35zK2M/38rYX3tYWYfSyDjJw1nCmHVRoJnBNO9du3j8J2tYvOxurGzloth9Ytk1W9Wexza%2BIUrNhWnBjTup1BoM/cgxKrcOJYibOgrPQKct3tOM%2B5Xh5EcZzHr/frzQ4J/mfROAmZ9oI9YTYucCnIzW10IDon0BbtoApYj0%2BQRRg6G3HqHWLuGHBsc2TEEoKIy0KQ3RAS3sYkiuySDWHZI6XqEwOsqTP1zNjY98iq6/H4f8UBf%2B94cQmjpgyeJld9M32SZ1MkAohZM2MDyFlQ8wKwGVOpvHfrqGee/ahRLgxSWx3gA3KbHKIUNajnL8u5N0GK0KxM/5uEmD4ghJojNkxKcO87MFX2PuX7Ty1PfPw02zPtpG3YFSFSG4MGLQhH/eypH3bGTRgy08srztDX39h%2BMwGCIr0XqGXyz8KitnbOCB/efDYK2Ys4nK0Dgjbj9M72dGsvupzVx98y4MV7Hv52uZ/46dJA/2cf%2BBuwGqUY6WX6Ud84WC0lCLaI%2BvjQ0DgmTBTTsxnJDf3n8rb3v0k/xi4VdZceUWnLoIQUxWF8Si63WoLru3clEYr91PbmLpou2UhmniwCB8BloYnJ2XYejjWfITU4SmINbl8fCe26oB/xbctJPf/XItsz/YhpcQZI57PPprHX7KrAQ8tHc9y67Zili6cJsqNEWpeamfMGrpU3PMxKmLIL0Q6Svsc0XchgRmSZub/bhFpDNHmIyCUhz6QIIp92bBENUIi7M%2B0kbjU32IQOHVxTGzmoQZRi2UKfWp%2BIpN%2BJkIVn8FpyF2EfNh2TVbyY2PUXMgz%2B5nt1SjZg7CLKDhl6PvqWXsr4oYuQp%2BbRyzr0RxfA1mKUC6AWaugtuYIIhK4seyKCkRjkt5Qj3Rk3n8mih7H93A1e9uJfNCN%2B7wNNINCKImVl%2BFvhlpor0BiWNZ7n9pO8vn3YmXtrH7HHY/uYmVMzZQGpvGLAU8vEd//6Lr7sEs%2BhhOwO4nN7Hwhh0X4aN/mJbPuxNCVZ0AF7Zx1dRbQQqUYfDA/m2smryW%2Bw/tvOi5mZ9oY9juTn5zpLXaL7JUqf5/YVo19VZUzNZoQ1mH%2BVq6eDuE4KVNzFKAfbKf%2Bw/tvCg65Iq5m5FFB/yA7KwhPPGj1RfBZ4Pjs/yqLdpgMzxF5EwBUXYIk1HykzKkjuRRpmT3U5urseYWXb9D2w9y3kWozMrLN1BqShPrLCJzZVQiSmmUZgBFejXsGj3nIMb83S41yECA8xEXJ25vwxvlcuIDtzHpznZCW7s9hhHtG3p4fQtN37qHjg/felEHTd6kWcWHtjQz6c52XrujmRl/287%2BL2mV4JLb2imO9%2Bj46Dqa7t1Jx8fXMnV9O25GUfvKeYbti3%2Bno7XUP2VQadTcut7LQh1yaSBSZmWkx9ifQtcsi/oDPmfnap/UMKKjL4ZRRe2LOo5YcZSi8bmQwigDN6ONLKGp2R0A1/zZLtykpHuWPoBpt8uQ%2Bme1oaI4QhDph/xYBVLXH4wrc%2By9utOv%2BKs2nv22Prgg0AfeguDVu5ov6p9pa9s5sPPie/%2BVdKHKAfogd3DrG8sbjDB0YSQi0MaI3//zaqauH4iiGdMM6kH3yPE7tR94dpI%2BAMZPafxx0MJ3ya3tVBoUidOC/NiQxEmJndMhwC65rZ36l/ThPvm6zleWouZlyQtfbeGSW9upORzgZCTdc7VrLEo7yQ%2B6bU7e3M6hzc00fece8ARD9pn0Tz4fRXQwTb1dB5kUkze3q/RRRf9UOLxeP3RhrNpZH20jNxGEB4c3tLDwLTtQxqDTtatx4IxN7yUWyqA6OMvmb6U8LEolI2l8spfKyBTH/kzS8fGLwzCNa2sl8bq21NlZ7f12YZr9oTYSZ3weuW9AElygDwJM3NZG8iRU6gWJ06oa62xQOsz423asoi73ig%2B3vaH8Cffobbz%2BRUVhpKwO1GA9l67W8eKGPOPQOS/CwW3NF0meq97bSqVGkOzUFJh9P3/zMFMXplVT1lWjZC5ZchdmwcVpiBHtLPDA81u55s93YRUCIl0lhOtXIz0OpmULtuHHDJQpq/2y6tL1lEeneeQ3t7Lsmq3seWwj101Y/aZS%2BA/78A3fdwHS8b%2BRFty484%2BG3xqsz89EUZZk78O3/9HnBr/7woiXYtq6dqUNCfrg1HTvTmr2m1TqAQGHNmunaSSaOTDAbF1x01M89OO5%2BHPzVLIRoh02l644xP7fTqqulmlr2rnynS/y26MTCX3JNROPsu/FycQ7TF7d3sy7H/sopgz43ZPTSB2VuLVQGe6Redli/xc1%2B8EqKMwbu%2BnPxbl2/GGev/cynv1WC1PXtxPrVvQvrmAfiFGZ5KBKBokOk%2BJEl8hpi8RJyE0AZSiSJyTF0Qq/zsM%2BYyFCWLjqRQ60TufM21zCsknqFYvScKXJkw0B8RMmsS6FUy%2BIn1H0XYKmDGVc7Kg2hHieQehLpKFAKK4ee5x9z0%2Bm7nmD3qs9rLOaPTAYr23GZ9opjlC8ZcVT/HL/5cQORvBSiliX4LoPPMbP7p/HkXUtf1RST97czjve/jt2zPwpY7/YylsWPMOv9s1GRUI6Pr6W5ufeRfusnzDzV%2Bt5/q13veH9P0xz77uV3lycI%2B%2B%2Bgykb25EerLr5Ce7/8dUoA2JdeqfyUtoUzaV5ACo9Ma6f/SL3zvk%2Bl3%2ByjRe%2Bel4wvP%2BJv%2BKp%2B6cT7dZzJbC1BJ%2B8uZ1rrn%2BR7171Xcb%2BYDtLJx3iiX%2B9HIADO5ovavPkTe0YLlrKKp0/mJqfexf//pN52DkQ41rb1LHVLYz5yi5OfGoNcz7QxtP/0ML0z2nJ83Jbsw6S16/t9NLX9O39X2xm2rp2DuxoZvyuNpRUhDFF4phB/Kwic7jEyaUJyiN9JvzEp2NFBD8VUnNAb%2BmxnpC%2BqQK3Lqz68gpfkD6qY97Wv%2Bxy5iobPzHA2FCauBlEFdFzA/4WJpSHhlXSp90n8VIKOydw6kPtP1wbah/dUG%2BXsTPaKhfa2kTqNmjmhN1tVKnqDAST9uMD%2BYHQAfXiIXa3QWjrBe/HIIwN4MC%2BIIyGmHlDE3QHgkkfXddSjYK%2BZOldPLT3YkTkT6XByXHl%2B1sv8ksAuPyv26g96NJzaYS6V86zp696bysiUER7fJw6EyXgiR9rNXHwRD/3llbMsqJSJ4n0h9X8QZVk6u3t2sOuqP0pkqcCnvjxGi65rR2nVjF6t8vxt5nUHJAoKXjxy81VG8KgGjDpTh2oJdItiJ1T5McJRt%2Bv/ZzH79A7X2gr7Jwkflr7O09d3060V5GdpM4zoRUMeVoHxum8RjLkGcW5WQN58965SwW25o3Vv1TEqY38n8rOJjaKMozjv/ncnf2gu9sPRFCwFCNoLQWipgiBrFRrPBAOJl6EkBgTEy8QokCpqUWagsPJswcPxoPh5KHBgEQiBkMEJKQVIqIgJbal3e3MznY%2BPbyZgX4c5L1uNpls9n3n//zf//N7MMZsqmvyVFcpLPvJptpqiHCILnHpq/10vmcmxB3NirCXCcRn/pZNbXkGpR4ieyGT7Sm0qtCUejWicGWCMJfCXpkj%2B5fF/a4GQg0abgc4JRnFBd0KSU%2B6nD13mGf7RSvN8jMVJjoFKjXOtYLQc/WSiBne6N%2BXkNxBFAHTzxdw8xKN1x2qz6QTsnp3Ry/W6gYunDrA%2BvdNNDvCWiHTeN3HNySW3JyhuibPzFMKmhURahKZcYGg3dozRCRBbalKcdRmoiNLwx8u9pM6jRfH8VryOC06mbE6lbYMpavTiRx7/YXD%2BAUD7e4kYSEHkHzW3d4LMoQZfcFIhvKrR1Eq9TnuAwipF%2BRSCX8XRPEbu0RxDiEuDkFIq3pTWlzTB9ECDu%2Bja/v2Y2jTdU5f/jSRJfNHUJS7xPMrNRevZCzYoJt3HkcKSCREefMAgSGumlXbI8gIMlJsdcajF/ysilIPFn2%2B2Kkodw0gbdhrRr9%2BuT9B8Md6Jf6TAqwZMJPdkHpAgt5fe/AkI4P7aDtmInuCb6BPS6iOkCMb9ppMrROF0nOHTorCxgE3L4q81YOmyLGOiyZALy/awmeLEU8P17jzWpbZZtFmHSmCW1BvDmm6ImGM%2B1RXqkyvjVAcKbl506fkBLMUqqKxM3NPnLpOi/iuWhcZ5kAHryEi9UDkft2GkPS4THpSnPi1J0RKTJuR0CtgrRIpsFCNyN4FayUQiTRdYJAkyiRP2G7FG/4c%2B%2Bj/rPmzLrp2ncD4dxaiaMEMjE3vmuTvzvLD2UNzirUtbw4xW1D45eu5TgE8nEERo7w27TbxDRIOc9euE1w4dYCX3/kcNyc6X%2BSAxHUY78wRpATy6sUPT6JXRbrv4jcP3w6xFNi4x8RaIVEaDVCdEN%2BQ%2Bflbcfi0fWbSdDWktlRBtSMKNx3Onu9NFMC6A%2BJGLtTBT0Pzbx7nv/uITbvFjA2nUabWIiFtKw9GshfiZxRkLyI98g/D975IsP4xc2yxH7e7sw%2B3ZFBp1Wm6XOX7S/1zdujGPSbF38WpHttIj1pEr7x9gtwdRxjwjwyQientW94aIlSlZFBIYdTCz%2BmcO3OQzTuPo9oBXl7FaZIpjji4BR3VCUj9PYUUhNzfsQzZg%2BJoDT%2Bjonhhstvj8Qbd7b0E%2BRRuUSc1URf8Ncvl9LWjdHxgotmQqgQYYw6yG%2BCWDGaLgiOX/dPCWZElc8eivjTDj8Mfs2PDJ8y05VgyUkkSVvCwACl3DaA43mMPy4nXjpf68XPaY0uRxVZ3Z58I9yzRE%2BjM/LW1ZwjZDdGm6knh90brfoZvmcKS01ROXzvKtvIg6duTC4rGrT1DaFUXbWya4VtCNnSvP4KfT80BlCteiGJ7wmLr7CMwNM5cOCICTIaKYrkLhg9tKw/yH/0Xw3kSC1IAAAAAAElFTkSuQmCC')
+
+      var xyratio = get_xyratio();
+
+      var scalex = 1;
+      var scaley = 1;
+
+      var xAxis = d3.axisBottom(xScale)
+          .tickValues(xtick_pos)
+          .tickFormat(function(d, i) {return xtick_labels[i];});
+
+      function customTickFunction(d) {
+        var dom = yAxis.scale().domain();
+        if ((dom[1] - dom[0]) < 50) {
+          return Math.round(dom[1] - dom[0]);
+        }
+        return 50;
+      }
+
+      var yAxis = d3.axisLeft(yScale)
+          .ticks(50)
+          .tickFormat(function(d) {
+            try {
+              var taxa = yticklabels[Math.round(d)].replace(/;+$/, '').split(';');
+              var label = taxa.pop();
+              while (label.length == 3 && label.substring(1,3) == '__') {
+                label = taxa.pop()
+              }
+              if (taxa.length > 0) {
+                 label = taxa.pop() + ' ' + label;
+              }
+            }
+            catch(err) {
+              label=''
+            }
+            return label;
+          });
+      yAxis.ticks(customTickFunction());
+
+      var gY = svg.append('g')
+          .attr('class', 'axis axis--y')
+          .attr('transform', 'translate(' + yaxiswidth + ',0)')
+          .call(yAxis);
+
+      var gX = svg.append('g')
+          .attr('class', 'axis axis--x')
+          .attr('transform', 'translate(' + yaxiswidth + ',' + (hheight) + ')')
+          .call(xAxis);
+
+      // The per sample-type vlines
+      var vline_lines = heatmapregion.append('g');
+      for (idx=0;idx<vlines.length; idx++) {
+        vline_lines.append('line')
+            .attr('id', 'vline')
+            .attr('class', 'vLine')
+            .style('stroke', 'white')
+            // .style('stroke-dasharray', '1,1')
+            .style('stroke-opacity', 1)
+            .style('stroke-width', 6 * xyratio)
+            .attr('x1', vlines[idx]).attr('y1', 0)
+            .attr('x2', vlines[idx]).attr('y2', ids.length);
+      }
+
+      // The cursor crosshair
+      var focus = heatmapregion.append('g');
+
+      var xline = focus.append('line')
+          .attr('id', 'focusLineX')
+          .attr('class', 'focusLine')
+          .style('stroke', 'white')
+          // .style('stroke-dasharray', '1,1')
+          .style('stroke-opacity', 0.5)
+          .style('stroke-width', 1);
+
+      focus.append('line')
+          .attr('id', 'focusLineY')
+          .attr('class', 'focusLine')
+          .style('stroke', 'white')
+          .style("stroke-opacity", 0.5)
+          // .style('stroke-dasharray', '1,1')
+          .style('stroke-width', 1 * xyratio);
+
+      d3.select('#reset')
+          .on('click', resetted);
+
+      d3.select('#zoomsplus')
+          .on('click', zoomX);
+
+      d3.select('#zoomsminus')
+          .on('click', unzoomX);
+
+      d3.select('#zoomfplus')
+          .on('click', zoomY);
+
+      d3.select('#zoomfminus')
+          .on('click', unzoomY);
+
+      d3.select('#movedown')
+          .on('click', moveDown);
+
+      d3.select('#moveup')
+          .on('click', moveUp);
+
+      d3.select('#moveright')
+          .on('click', moveRight);
+
+      d3.select('#moveleft')
+          .on('click', moveLeft);
+
+      var initial_scale_factor = hwidth / samples.length;
+
+      var shiftdown = 0;
+      var current_tx, current_scale_x, current_scale_y, current_ty;
+      d3.select('body').on('keydown', onkeydown);
+      d3.select('body').on('keyup', onkey);
+
+      var zoom = d3.zoom()
+          .scaleExtent([initial_scale_factor, 10000])
+          .translateExtent([[0, 0], [width / initial_scale_factor, 100000000]])
+          .on('zoom', zoomed);
+
+      heatmapregion.call(zoom);
+
+      // and initial zoom to have full screen
+      resetted();
+
+      function onkeydown() {
+        if (d3.event.key == '-') {
+          unzoomY();
+          return;
+        };
+        if (d3.event.key == '=') {
+          zoomY();
+          return;
+        };
+        if (d3.event.key == '+') {
+          zoomX();
+          return;
+        };
+        if (d3.event.key == '_') {
+          unzoomX();
+          return;
+        };
+        if (d3.event.key == 'ArrowDown') {
+          moveDown();
+          return;
+        };
+        if (d3.event.key == 'ArrowUp') {
+          moveUp();
+          return;
+        };
+        if (d3.event.key == 'ArrowLeft') {
+          moveLeft();
+          return;
+        };
+        if (d3.event.key == 'ArrowRight') {
+          moveRight();
+          return;
+        };
+        // and now process the shift
+        onkey();
+      }
+
+      function onkey() {
+        shiftdown = d3.event.shiftKey;
+        if (shiftdown) {
+          xyratio = xyratio * current_scale_y / current_scale_x;
+          current_scale_y = current_scale_x;
+          current_tx = current_tx / (current_scale_x);
+        } else {
+          xyratio = xyratio * current_scale_y / current_scale_x;
+          current_ty = current_ty / current_scale_x;
+        }
+      }
+
+      function zoomed() {
+        tt = d3.event.transform
+        // if shift pressed we're in x-axis zoom/move mode
+        if (shiftdown != 0) {
+          current_tx = tt.x;
+          current_scale_x = tt.k;
+          gX.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+          vline_lines.selectAll('#vline').style('stroke-width', 3 / tt.k);
+          focus.selectAll('#focusLineY').style('stroke-width', 2 / tt.k);
+        };
+        // if no shift pressed - we're in y-axis move/zoom mode
+        if (shiftdown != 1) {
+          current_ty = tt.y;
+          current_scale_y = tt.k;
+          ytransform = d3.zoomIdentity.translate(tt.x, tt.y).scale(tt.k * xyratio);
+
+          // for the y-axis we need to update the scale since it's already scaled by ids/hheight
+          ytransform2 = d3.zoomIdentity.translate(tt.x, tt.y).scale(tt.k * xyratio * ids.length / hheight);
+          gY.call(yAxis.scale(ytransform2.rescaleY(yScale)).ticks(customTickFunction()));
+
+          focus.selectAll('#focusLineX').style('stroke-width', 2 / (xyratio * tt.k));
+        };
+        newt = 'translate(' + current_tx + ',' + current_ty + ') scale(' + current_scale_x + ',' + current_scale_y * xyratio + ')';
+        heatmap.attr('transform', newt);
+        vline_lines.attr('transform', newt);
+        focus.attr('transform', newt);
+      }
+
+      function reset_coords() {
+        xyratio = get_xyratio();
+        current_tx = 0;
+        current_scale_x = initial_scale_factor;
+        current_ty = 0;
+        current_scale_y = initial_scale_factor;
+      }
+
+      function resetted() {
+        console.log('reset coordinates');
+        reset_coords();
+        old_shiftdown = shiftdown;
+        shiftdown = 2;
+        heatmapregion.call(zoom.transform, d3.zoomIdentity.scale(initial_scale_factor));
+        shiftdown = old_shiftdown;
+        // The nice transition didn't work with the shift up/down
+        // heatmapregion.transition()
+        //     .duration(750)
+        //     .call(zoom.transform, d3.zoomIdentity.scale(initial_scale_factor));
+      }
+
+      function zoomX() {
+        old_shiftdown = shiftdown;
+        shiftdown = 1;
+        ctrans = d3.zoomTransform(heatmapregion.node());
+        ctrans.x = 0;
+        ctrans.k = ctrans.k * 2;
+        // the leftmost feature showing in the screen
+        screen_start = xAxis.scale().invert(0);
+
+        // move so 0th sample is left column displaying
+        heatmapregion.call(zoom.transform, ctrans);
+
+        zoom.translateBy(heatmapregion, 0, 0);
+        zoom.scaleBy(heatmapregion,1);
+        newpos = xAxis.scale()(screen_start);
+        newpos = -newpos;
+        ctrans.x = newpos;
+        heatmapregion.call(zoom.transform, ctrans);
+        shiftdown = old_shiftdown;
+      }
+
+      function unzoomX() {
+        old_shiftdown = shiftdown;
+        shiftdown = 1;
+        ctrans = d3.zoomTransform(heatmapregion.node());
+        ctrans.x = 0;
+        ctrans.k = ctrans.k / 2
+        // the topmost feature showing in the screen
+        screen_start = xAxis.scale().invert(0);
+
+        // move so 0th feature is top row displaying
+        // zoom.translateBy(heatmapregion, 0, -tozero/xyratio)
+        heatmapregion.call(zoom.transform, ctrans);
+
+        zoom.translateBy(heatmapregion, 0, 0);
+        zoom.scaleBy(heatmapregion,1);
+        newpos = xAxis.scale()(screen_start);
+        newpos = -newpos;
+        ctrans.x = newpos;
+        heatmapregion.call(zoom.transform, ctrans);
+        shiftdown = old_shiftdown;
+      }
+
+      function zoomY() {
+        ctrans = d3.zoomTransform(heatmapregion.node());
+        ctrans.y = 0;
+        // the topmost feature showing in the screen
+        screen_start = yAxis.scale().invert(0);
+
+        // move so 0th feature is top row displaying
+        // zoom.translateBy(heatmapregion, 0, -tozero/xyratio)
+        heatmapregion.call(zoom.transform, ctrans);
+
+        xyratio = xyratio * 2;
+        zoom.translateBy(heatmapregion, 0, 0);
+        newpos = yAxis.scale()(screen_start);
+        newpos = -newpos;
+        ctrans.y = newpos;
+        heatmapregion.call(zoom.transform, ctrans);
+      }
+
+      function unzoomY() {
+        ctrans = d3.zoomTransform(heatmapregion.node());
+        ctrans.y = 0;
+        // the topmost feature showing in the screen
+        screen_start = yAxis.scale().invert(0);
+
+        // move so 0th feature is top row displaying
+        // zoom.translateBy(heatmapregion, 0, -tozero/xyratio)
+        heatmapregion.call(zoom.transform, ctrans);
+
+        xyratio = xyratio / 2;
+        zoom.translateBy(heatmapregion, 0, 0);
+        newpos = yAxis.scale()(screen_start);
+        newpos = -newpos;
+        ctrans.y = newpos;
+        heatmapregion.call(zoom.transform, ctrans);
+      }
+
+      function moveDown() {
+        screen_start = yAxis.scale().invert(0);
+        screen_end = yAxis.scale().invert(height - xaxisheight);
+        old_shiftdown = shiftdown
+        shiftdown = 0;
+        zoom.translateBy(heatmapregion, 0, (screen_start - screen_end) * xyratio);
+        shiftdown = old_shiftdown;
+      }
+
+      function moveUp() {
+        screen_start = yAxis.scale().invert(0);
+        screen_end = yAxis.scale().invert(height - xaxisheight);
+        old_shiftdown = shiftdown
+        shiftdown = 0;
+        zoom.translateBy(heatmapregion, 0, (screen_end - screen_start) * xyratio);
+        shiftdown = old_shiftdown;
+      }
+      function moveLeft() {
+        screen_start = xAxis.scale().invert(0);
+        screen_end = xAxis.scale().invert(width - xaxisheight);
+        old_shiftdown = shiftdown
+        shiftdown = 1;
+        zoom.translateBy(heatmapregion, (screen_end - screen_start), 0);
+        shiftdown = old_shiftdown;
+      }
+      function moveRight() {
+        screen_start = xAxis.scale().invert(0);
+        screen_end = xAxis.scale().invert(width - xaxisheight);
+        old_shiftdown = shiftdown
+        shiftdown = 1;
+        zoom.translateBy(heatmapregion, (screen_start - screen_end), 0);
+        shiftdown = old_shiftdown;
+      }
+
+      function onclick() {
+        var pos = d3.mouse(heatmap.node());
+        // var cx = Math.round(xScale.invert(pos[0])), cy = Math.round(yScale.invert(pos[1]));
+        var cx = Math.round(pos[0]-0.5), cy = Math.round(pos[1]-0.5);
+        // var posx = xScale.invert(pos[0]), posy = yScale.invert(pos[1]);
+        var posx = pos[0], posy = pos[1];
+        focus.select('#focusLineY')
+            .attr('x1', Math.round(posx + 0.5) - 0.5).attr('y1', 0)
+            .attr('x2', Math.round(posx + 0.5) - 0.5).attr('y2', ids.length);
+        focus.select('#focusLineX')
+            .attr('x1', 0).attr('y1', Math.round(posy-0.5) + 0.5)
+            .attr('x2', samples.length).attr('y2', Math.round(posy-0.5) + 0.5);
+
+        var cid = ids[cy];
+        var csamp = samples[cx];
+        try {
+          var ctax = yticklabels[cy].split(';').map(function(e) {
+            try {
+              e = e.split('_').pop()
+            } catch(err) {
+              console.log('failed to split taxonomy on "_":');
+              console.log(e)
+              console.log(err)
+            }
+            return '<a href="https://en.wikipedia.org/wiki/' + e + '" target="_blank">' + e + '</a>'
+          }).join('; ');
+        } catch (err) {
+          console.log('error when parsing taxonomy:');
+          console.log(err);
+          ctax = "No taxonomy in biom table";
+        }
+        $('#taxonomy').html(ctax);
+        $('#sampleid').html(csamp);
+        $('#sequence').html(cid);
+        // Get dbBact annotations for selection
+        $.ajax({
+          url: 'http://api.dbbact.org/sequences/get_string_annotations',
+          type: 'POST',
+          data: JSON.stringify({'sequence': cid}),
+          dataType: 'json',
+          contentType: 'application/json; charset=utf-8',
+          success: function(data) {
+              if (data.annotations.length == 0) {
+                atext = 'No annotations found for sequence'
+              }
+              else {
+                var atext = '';
+                var clink = 'http://dbbact.org/sequence_annotations/' + cid;
+                var ctext = '<p><a href="' + clink + '" target="_blank">dbBact Summary</a></p>';
+                atext += ctext;
+                for (i = 0; i < data.annotations.length; i++) {
+                    clink = 'http://dbbact.org/annotation_info/' + data.annotations[i].annotationid.toString();
+                    ctext = '<a href="' + clink + '" target="_blank">' + data.annotations[i].annotation_string + '</a><br>';
+                    atext += ctext;
+                }
+              }
+              $('#p-annotation').html(atext);
+          }
+        });
+      }
+
+      function get_xyratio() {
+        return (hheight / ids.length) * (samples.length / hwidth);
+      }
+
+      $(window).on('resize', function(){
+        $('body').height('calc(100vh - 50px)');
+      });
+    });
+  </script>
+</head>
+<body style="height: calc(100vh - 50px); min-height: 600px; min-width: 1080px;">
+  <div>&nbsp;</div>
+  <div id="div-annotation" class="panel panel-default" style="float: right; margin: 10px; width: 360px; height: auto; white-space: nowrap;">
+    <!--Here goes the annotations!-->
+    <div class="panel-heading">
+      <b>dbBact annotations</b>
+    </div>
+    <div class="panel-body" style="overflow: auto;">
+      <p id="p-annotation">Click on heatmap to see annotations</p>
+    </div>
+    <div class="panel-footer">
+      For more analysis options, download <a href='https://github.com/amnona/calour' target='_blank'>Calour</a>.
+    </div>
+  </div>
+
+  <div class="panel panel-default" style="margin: 10px; width: auto; height: 100%; overflow: hidden;">
+    <div id="div-title" class="panel-heading">
+      <b><span id="title_text">Experiment</span></b>
+      (sorted by field: <b><span id='field_name'> NA </span></b>)
+      <span style="float: right;">
+        <button id="reset" class="btn btn-default btn-xs">Reset</button>
+        <button id="zoomfplus" class="btn btn-default btn-xs">F+</button>
+        <button id="zoomfminus" class="btn btn-default btn-xs">F-</button>
+        <button id="zoomsplus" class="btn btn-default btn-xs">S+</button>
+        <button id="zoomsminus" class="btn btn-default btn-xs">S-</button>
+        <button id="moveup" class="btn btn-default btn-xs">&uarr;</button>
+        <button id="movedown" class="btn btn-default btn-xs">&darr;</button>
+        <button id="moveleft" class="btn btn-default btn-xs">&larr;</button>
+        <button id="moveright" class="btn btn-default btn-xs">&rarr;</button>
+        <button id="btn-help" class="btn btn-default btn-xs" onclick="$('#div-help').toggle();">Help</button>
+      </span>
+    </div>
+    <div id="div-heatmap" class="panel-body" style="height: calc(100% - 100px);">
+      <svg id="heatmap" style="width: 100%; height: 100%;)"></svg>
+    </div>
+    <div id="div-selection" class="panel-footer">
+      <!--Here goes the selection!-->
+      <span style="display: inline-block; float: left; overflow: hidden;"><b>Sample:&nbsp;&nbsp;</b></span>
+      <span id="sampleid" style="display: inline-block; float: left; width: 120px; overflow: auto; white-space: nowrap;">NA</span>
+      <span style="display: inline-block; float: left; overflow: hidden;">&nbsp;&nbsp;<b>Taxonomy:&nbsp;&nbsp;</b></span>
+      <span id="taxonomy" style="display: block; overflow: auto; white-space: nowrap;">NA</span>
+      <span style="display: inline-block; float: left; overflow: hidden;"><b>Sequence:&nbsp;&nbsp;</b></span>
+      <span id="sequence" style="display: block; overflow: auto; white-space: nowrap;">NA</span>
+    </div>
+  </div>
+
+  <div id="div-help" class="panel panel-info" style="display: none; position: fixed; left: 50%; width: 400px; margin-left: -200px; top: 200px; box-shadow: 10px 10px 5px rgba(0,0,0,0.5);">
+    <div class="panel-heading">
+      Help
+      <span style="float: right;"><button class="btn btn-default btn-xs" onclick="$('#div-help').hide();">&times;</button></span>
+    </div>
+    <div class="panel-body">
+      <p>Use mouse or -/= for zooming bacteria, shift+mouse or _/+ for zooming samples, arrow keys to move in heatmap.</p>
+    </div>
+  </div>
+</body>
+</html>
